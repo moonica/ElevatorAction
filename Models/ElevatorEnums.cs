@@ -21,5 +21,5 @@ namespace ElevatorAction.Models
 	internal enum ElevatorStatusEnum
 	{
 		Undefined, Stopped, GoingUp, GoingDown
-	}
+	}	
 }
