@@ -1,10 +1,19 @@
-﻿namespace ElevatorAction
+﻿using ElevatorAction.UserInterface;
+using ElevatorAction.Models;
+
+namespace ElevatorAction
 {
     internal class Program
     {
-        static void Main(string[] args)
+        /*
+          The use of dependency injection is a little contrived here, but as much as possible without over-engineering past the point of the requirements given (a console application per se), I have attempted to decouple the entry point from the console specific interface details. It would need some additional work to truly become loosely coupled but I have attempted to minimise that technical debt, and to illustrate how dependency injection can be generally used for seperation of concerns and clean architecture.
+          -Jonica Brown Feb 2024
+        */
+
+        static async void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            var elevatorMaster = new ElevatorMaster(new ConsoleInterface());
+            await elevatorMaster.Execute();
         }
     }
 }
