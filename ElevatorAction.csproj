@@ -8,6 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DB Scripts\**" />
+    <Compile Remove="Metadata\**" />
+    <EmbeddedResource Remove="DB Scripts\**" />
+    <EmbeddedResource Remove="Metadata\**" />
+    <None Remove="DB Scripts\**" />
+    <None Remove="Metadata\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Factories\" />
     <Folder Include="Repository\" />
   </ItemGroup>
