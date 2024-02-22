@@ -8,6 +8,7 @@ namespace ElevatorAction.UserInterface
 {
     public enum CommandType
     {
+        Abort,
         CallElevator,
         CreateElevator,
         DeleteElevator,
