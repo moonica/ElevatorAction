@@ -10,10 +10,13 @@
 
   <ItemGroup>
     <Compile Remove="DB Scripts\**" />
+    <Compile Remove="ElevatorTests\**" />
     <Compile Remove="Metadata\**" />
     <EmbeddedResource Remove="DB Scripts\**" />
+    <EmbeddedResource Remove="ElevatorTests\**" />
     <EmbeddedResource Remove="Metadata\**" />
     <None Remove="DB Scripts\**" />
+    <None Remove="ElevatorTests\**" />
     <None Remove="Metadata\**" />
   </ItemGroup>
 
@@ -23,6 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+  
     <None Update="LICENSE">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
