@@ -45,7 +45,17 @@ namespace ElevatorAction.Models
         /// Elevator moving status enum (standing still, going up, going down etc. "Undefined" means an elevator has been created in the system but not yet used since last reboot
         /// </summary>
         internal ElevatorStatusEnum ElevatorMovingStatus;
-        
+
+        /// <summary>
+        /// Elevator model number from supplier
+        /// </summary>
+        internal string Model;
+
+        /// <summary>
+        /// Elevator unique serial number from supplier
+        /// </summary>
+        internal string SerialNr;
+
         #endregion PUBLIC PROPERTIES
 
 

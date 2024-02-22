@@ -11,8 +11,10 @@ GO
 CREATE TABLE [dbo].[Elevators](
 	[ElevatorID] [int] IDENTITY(1,1) NOT NULL,
 	[ElevatorName] [nvarchar](100) NULL,
-	[MaxCapacity] [float] NULL,
+	[MaxCapacity] [float] NOT NULL,
 	[ElevatorType] [int] NULL,
+	[Model] [nvarchar](250) NULL,
+	[SerialNr] [nvarchar](250) NULL
  CONSTRAINT [PK_Elevators] PRIMARY KEY CLUSTERED 
 (
 	[ElevatorID] ASC

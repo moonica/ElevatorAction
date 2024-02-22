@@ -8,8 +8,16 @@ namespace ElevatorAction.UserInterface
 {
     public enum CommandType
     {
+        CallElevator,
+        CreateElevator,
+        DeleteElevator,
+        DisableElevator,
+        EnableElevator,
         Exit,
+        Help,
+        ListElevatorDetails,
+        ListElevators,
+        ListElevatorStates,
         TryAgain,
-        Help
     }
 }
