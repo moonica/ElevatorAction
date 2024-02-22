@@ -18,6 +18,25 @@
 
         #region PUBLIC METHODS
 
+        //Not private due to testing visibility
+        public CommandType getCommand(string input)
+        {
+            //if no valid input was received, exit
+            if (input is null)
+            {
+                return CommandType.Exit;
+            }
+
+            ////the input wasn't recognized
+            //if (!commandList.ContainsKey(input))
+            //{
+            //    return ConsoleCommand.TryAgain;
+            //}
+
+            //the input was one of the set commands
+            return commandList[input];
+        }
+
         public void Display(string message, bool isConfirmation = false)
         {
             if (isConfirmation)
@@ -37,20 +56,7 @@
         {
             var input = await GetInputAsync();
 
-            //if no valid input was received, exit
-            if (input is null)
-            {
-                return CommandType.Exit;
-            }
-
-            ////the input wasn't recognized
-            //if (!commandList.ContainsKey(input))
-            //{
-            //    return ConsoleCommand.TryAgain;
-            //}
-
-            //the input was one of the set commands
-            return commandList[input];
+            return getCommand(input);
         }
 
         public void ShutDown()
