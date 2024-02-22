@@ -19,11 +19,14 @@ https://trello.com/b/34r3ZIEA/elevator-action-tasks
 - Integration tests have not been included in this version
 
 ##Usage
-1. The database connection string should be set in the App.config file prior to execution.
+1. The database connection string should be set in the App.config file prior to execution. Other settings are also configurable in the App.config file, such as the number of times to allow an unrecognized command before exiting.
 2. The project is run by executing the executable (.exe) file.
 3. Interaction is through the console via text commands. Input is not case sensitive.
 4. A list of commands can be retrieved at any time (other than in the middle of an operation sequence) by entering the command "help".
 5. Exit the application at any time (other than in the middle of an operation sequence) by entering the command "exit". NOTE that state will be lost upon exit (elevator definitions are saved to database but state information such as their position, direction of travel and load will be lost).
+
+##Logging
+Not implemented in this version
 
 ##Contact
 Jonica Brown

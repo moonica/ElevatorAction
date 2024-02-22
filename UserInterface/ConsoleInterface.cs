@@ -1,4 +1,6 @@
-﻿namespace ElevatorAction.UserInterface
+﻿using static System.Net.Mime.MediaTypeNames;
+
+namespace ElevatorAction.UserInterface
 {
     public class ConsoleInterface : IUserInterface
     {
@@ -27,11 +29,11 @@
                 return CommandType.Exit;
             }
 
-            ////the input wasn't recognized
-            //if (!commandList.ContainsKey(input))
-            //{
-            //    return ConsoleCommand.TryAgain;
-            //}
+            //the input wasn't recognized
+            if (!commandList.ContainsKey(input))
+            {
+                return CommandType.TryAgain;
+            }
 
             //the input was one of the set commands
             return commandList[input];
@@ -61,7 +63,7 @@
 
         public void ShutDown()
         {
-            //nothing needed for console applications
+            Environment.Exit(0);
         }
 
         #endregion PUBLIC METHODS
