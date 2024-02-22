@@ -30,13 +30,13 @@ namespace ElevatorAction.UserInterface
             }
 
             //the input wasn't recognized
-            if (!commandList.ContainsKey(input))
+            if (!commandList.ContainsKey(input.Trim().ToUpper()))
             {
                 return CommandType.TryAgain;
             }
 
             //the input was one of the set commands
-            return commandList[input];
+            return commandList[input.Trim().ToUpper()];
         }
 
         public void Display(string message, bool isConfirmation = false)
