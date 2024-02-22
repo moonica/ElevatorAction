@@ -84,6 +84,5 @@ namespace ElevatorAction
             _ui.Display(message);
             _ui.ShutDown();
         }
-
     }
 }
