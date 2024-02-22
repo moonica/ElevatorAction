@@ -11,12 +11,14 @@ namespace ElevatorTests
 {
     internal class TestInterface : IUserInterface
     {
+        private List<CommandType> listOfCommands;
+        private int commandListCounter = 0;
+        
         public CommandType TestCommand = CommandType.Exit;
         public string TestInput = string.Empty;
         public bool multipleCommands = false;
-        private List<CommandType> listOfCommands;
-        private int commandListCounter = 0;
         public List<string> outputs = new List<string>();
+        public string ExitString = "Application ended";
 
         public TestInterface() 
         {
@@ -26,7 +28,7 @@ namespace ElevatorTests
         public void Display(string message, bool isConfirmation = false)
         {
             Debug.WriteLine(message);
-            outputs.Add(isConfirmation ? $"Confirm? {message}" : message);
+            outputs.Add(message);
         }
 
         public async Task<CommandType> GetCommandAsync()
@@ -50,7 +52,7 @@ namespace ElevatorTests
 
         public void ShutDown()
         {
-            Debug.WriteLine("Application ended");
+            Debug.WriteLine(ExitString);
             outputs.Add(CommandType.Exit.ToString());
         }
 
@@ -58,6 +60,8 @@ namespace ElevatorTests
         {
             multipleCommands = true;
             commandListCounter = 0;
+
+            listOfCommands = commands;
         }
 
         public void Reset()

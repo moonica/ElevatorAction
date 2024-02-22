@@ -7,28 +7,27 @@ namespace ElevatorTests
     [TestClass]
     public class ElevatorMasterTests
     {
-        //private IUserInterface ui = new TestInterface();
-        private TestInterface ui = new TestInterface();
-        private readonly IConfiguration _config;
-        private int _retryCount = 2;
+        private IConfiguration _config = new TestConfig();
+        private TestInterface _ui = new TestInterface();
+        private int _retryCount;
 
         private ElevatorMaster elevatorMaster;
 
-        public ElevatorMasterTests(IConfiguration config)
+        private void init()
         {
-            _config = config;
-            elevatorMaster = new ElevatorMaster(ui, _config);
-
-            int.TryParse(Utils.GetConfigSetting(_config, "retryCount"), out _retryCount);
+            elevatorMaster = new ElevatorMaster(_ui, _config);
+            _retryCount = TestUtils.nrRetries;
         }
 
         #region COMMAND SWITCH TESTS
 
         [TestMethod]
-        public async void elevatorMasterPerformsTryAgainThenExits()
+        public void ElevatorMasterPerformsTryAgainThenExits()
         {
+            init();
+
             //set up test interface
-            ui.SetMultipleCommands
+            _ui.SetMultipleCommands
                 (
                     new List<CommandType>
                     {
@@ -37,28 +36,27 @@ namespace ElevatorTests
                     }
                 );
 
-            await elevatorMaster.PerformCommand(CommandType.TryAgain);
+            elevatorMaster.PerformCommand(CommandType.TryAgain);
 
-            if ((ui.outputs?.Count ?? 0) < 3)
+            if ((_ui.outputs?.Count ?? 0) < 3)
             {
-                Assert.Fail($"Too few outputs detected from ElevatorMaster; it should have run 3 times; {ui.outputs?.Count} outputs were received");
+                Assert.Fail($"Too few outputs detected from ElevatorMaster; it should have run 3 times; {_ui.outputs?.Count} outputs were received");
             }
             else
-            {
-                var err = "Command number {0} should have been {1}. Instead the output was '{2}'";
-                Assert.AreEqual(3, ui.outputs.Count, $"PerformCommand should have run 3 times; it ran {ui.outputs.Count} times instead");
+            {                
+                Assert.AreEqual(3, _ui.outputs.Count, $"PerformCommand should have run 3 times; it ran {_ui.outputs.Count} times instead");
 
-                Assert.AreEqual(ui.outputs[0], Utils.Phrases_en["Retry"], string.Format(err, 0, "Retry", ui.outputs[0]));
-                Assert.AreEqual(ui.outputs[1], Utils.Phrases_en["Retry"], string.Format(err, 1, "Retry", ui.outputs[1]));
-                Assert.AreEqual(ui.outputs[2], Utils.Phrases_en["Retry"], string.Format(err, 2, "Retry", ui.outputs[2]));
+                TestUtils.assertOutputsHelper(0, _ui.outputs[0], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+
+                TestUtils.assertOutputsHelper(1, _ui.outputs[1], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+
+                TestUtils.assertOutputsHelper(2, _ui.outputs[2], Utils.Phrases_en["AreYouSure"], CommandType.Exit, 80);
             }
 
-            ui.Reset();
+            _ui.Reset();
+            
         }
 
-
-
         #endregion COMMAND SWITCH TESTS
-
     }
 }
