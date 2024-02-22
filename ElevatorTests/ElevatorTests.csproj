@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ElevatorAction\ElevatorAction.csproj" />
+    <ProjectReference Include="..\ElevatorAction.csproj" />
   </ItemGroup>
 
 </Project>
