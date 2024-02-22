@@ -67,6 +67,8 @@ namespace ElevatorAction
             }
         }
 
+        #region COMMAND ACTIONS
+
         private async Task PerformRetry()
         {
             int retryIdx = 0;
