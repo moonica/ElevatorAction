@@ -43,7 +43,7 @@ namespace ElevatorAction
             while (((_retryCount == -1) || (retryIdx < _retryCount)) && !success)
             {
                 //if there's a limit on retries, display how many are left
-                msg = (_retryCount == -1) ? retryMessage : $"{retryMessage} {string.Format(retryCountdownMessage, retryIdx)}";
+                msg = (_retryCount == -1) ? retryMessage : $"{retryMessage} {string.Format(retryCountdownMessage, _retryCount - retryIdx - 1)}";
                 _ui.Display(msg);
 
                 //get the new command input
