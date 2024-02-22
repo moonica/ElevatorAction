@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ElevatorAction.UserInterface;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 namespace ElevatorTests
 {
@@ -12,15 +13,34 @@ namespace ElevatorTests
     {
         public CommandType TestCommand = CommandType.Exit;
         public string TestInput = string.Empty;
+        public bool multipleCommands = false;
+        private List<CommandType> listOfCommands;
+        private int commandListCounter = 0;
+        public List<string> outputs = new List<string>();
+
+        public TestInterface() 
+        {
+            Reset();
+        }
 
         public void Display(string message, bool isConfirmation = false)
         {
             Debug.WriteLine(message);
+            outputs.Add(isConfirmation ? $"Confirm? {message}" : message);
         }
 
         public async Task<CommandType> GetCommandAsync()
         {
-            return TestCommand;
+            if (!multipleCommands)
+                return TestCommand;
+            else
+            {
+                //if we need to test something that returns different commands in a sequence, return the current one and move on the counter
+                if (commandListCounter < listOfCommands.Count)
+                    return listOfCommands[commandListCounter++];
+                else
+                    return TestCommand;
+            }
         }
 
         public async Task<string> GetInputAsync()
@@ -31,6 +51,21 @@ namespace ElevatorTests
         public void ShutDown()
         {
             Debug.WriteLine("Application ended");
+            outputs.Add(CommandType.Exit.ToString());
+        }
+
+        public void SetMultipleCommands(List<CommandType> commands)
+        {
+            multipleCommands = true;
+            commandListCounter = 0;
+        }
+
+        public void Reset()
+        {
+            multipleCommands = false;
+            commandListCounter = 0;
+            listOfCommands = new List<CommandType>();
+            outputs= new List<string>();
         }
     }
 }
