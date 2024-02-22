@@ -13,20 +13,29 @@ namespace ElevatorTests
         [TestMethod]
         public void getCommandReturnsExitOn_null()
         {
-            TestUtils.assertCommandHelper(null, CommandType.Exit);
+            input = null;
+            var response = ui.getCommand(input);
+            TestUtils.assertCommandHelper(input, CommandType.Exit, response);
         }
 
         [TestMethod]
         public void getCommandReturnsExitOn_exit_quit()
         {
-            TestUtils.assertCommandHelper("exit", CommandType.Exit);
-            TestUtils.assertCommandHelper("quit", CommandType.Exit);
+            input = "exit";
+            var response = ui.getCommand(input);
+            TestUtils.assertCommandHelper(input, CommandType.Exit, response);
+
+            input = "quit";
+            response = ui.getCommand(input);
+            TestUtils.assertCommandHelper(input, CommandType.Exit, response);
         }
 
         [TestMethod]
         public void getCommandReturnsExitOn_uppercase()
         {
-            TestUtils.assertCommandHelper("EXIT", CommandType.Exit);
+            input = "EXIT";
+            var response = ui.getCommand(input);
+            TestUtils.assertCommandHelper(input, CommandType.Exit, response);
         }
 
         #endregion EXIT COMMAND TESTS

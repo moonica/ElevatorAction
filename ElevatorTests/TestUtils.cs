@@ -10,16 +10,11 @@ namespace ElevatorTests
 {
     internal static class TestUtils
     {
-        private static Dictionary<string, string> errorMessages = new Dictionary<string, string>
+        public static void assertCommandHelper(string inputText, CommandType expectedCommand, CommandType actualCommand)
         {
-            { "shouldBeExit", "The return command for input {0} should be 'Exit'. {1} received instead." }
-        };
+            var errMsg = "The return command for input '{0}' should be {1}. {2} received instead.";
 
-        public static void assertCommandHelper(string input, CommandType commandTargetType)
-        {
-            var response = ui.getCommand(input);
-
-            Assert.AreEqual(commandTargetType, response, string.Format(errorMessages["shouldBeExit"], "'null'", response.ToString()));
+           Assert.AreEqual(expectedCommand, actualCommand, string.Format(errMsg, inputText, expectedCommand.ToString(), actualCommand.ToString()));
         }
     }
 }
