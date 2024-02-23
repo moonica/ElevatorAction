@@ -40,6 +40,7 @@ namespace ElevatorTests
             }
         }
 
+        [TestMethod]
         public void ValidateRetryCountFailsOnInvalidValues()
         {
             init();
@@ -54,6 +55,76 @@ namespace ElevatorTests
         #endregion VALIDATION TESTS
 
 
+        #region RETRY TESTS
+
+        public void ElevatorControllerRetriesThenExits()
+        {
+            //init();
+            //_ui.SetMultipleCommands
+            //    (
+            //        new List<CommandType>
+            //        {
+            //            CommandType.TryAgain,
+            //            CommandType.Exit
+            //        }
+            //    );
+
+            //elevatorMaster.PerformCommand(CommandType.TryAgain);
+
+            //if ((_ui.outputs?.Count ?? 0) < 3)
+            //{
+            //    Assert.Fail(string.Format(errMsgExpectedOutputs, 3, _ui.outputs?.Count));
+            //}
+            //else
+            //{
+            //    TestUtils.assertOutputsPartialMatchHelper(0, _ui.outputs[0], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+
+            //    TestUtils.assertOutputsPartialMatchHelper(1, _ui.outputs[1], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+
+            //    TestUtils.assertOutputsPartialMatchHelper(2, _ui.outputs[2], Utils.Phrases_en["AreYouSure"], CommandType.Exit, 80);
+            //}
+
+            //_ui.Reset();
+
+        }
+
+        #endregion RETRY TESTS
+
+
+        #region SHUTDOWN TESTS
+
+        [TestMethod]
+        public void ElevatorControllerExitsOnValidConfirmationInput()
+        {
+            init();
+            List<string> inputs = new List<string> { "Y", "YES", "Yes", "yes", "y" };
+
+            foreach (var input in inputs)
+            {
+                TestUtils.assertExitOutputsHelper<string>(_ui, (string s) => elevatorController.PerformShutdownWithConfirmation(Utils.Phrases_en["AreYouSure"]), Utils.Phrases_en["AreYouSure"], input, Utils.Phrases_en["AreYouSure"]);
+            }
+        }
+
+        [TestMethod]
+        public void ElevatorControllerDoesntExitOnInvalidConfirmationInput()
+        {
+            init();
+            List<string> inputs = new List<string> { "n", "no", "N", "NO", "No", null, "loremipsum", "yess" };
+
+            foreach (var input in inputs)
+            {
+                TestUtils.assertExitOutputsHelper<string>(_ui, (string s) => elevatorController.PerformShutdownWithConfirmation(Utils.Phrases_en["AreYouSure"]), Utils.Phrases_en["AreYouSure"], input, Utils.Phrases_en["AreYouSure"], false);
+            }
+
+            //no extra messages were written to the output list, and no outputs contain the shutdown message (ie, we never exited)
+            Assert.AreEqual(_ui.outputs?.Count ?? 0, inputs.Count);
+            Assert.IsFalse(_ui.outputs?.Contains(TestInterface.ExitString) ?? true);
+        }
+
+
+        #endregion SHUTDOWN TESTS
+
+        //Template
         #region  TESTS
 
         [TestMethod]
@@ -61,9 +132,10 @@ namespace ElevatorTests
         {
             init();
 
-            
+
         }
 
         #endregion TESTS
+
     }
 }
