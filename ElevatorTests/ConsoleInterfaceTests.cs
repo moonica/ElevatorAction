@@ -11,7 +11,7 @@ namespace ElevatorTests
         #region EXIT COMMAND TESTS
         
         [TestMethod]
-        public void getCommandReturnsExitOn_null()
+        public void GetCommandReturnsExitOn_null()
         {
             input = null;
             var response = ui.getCommand(input);
@@ -19,7 +19,7 @@ namespace ElevatorTests
         }
 
         [TestMethod]
-        public void getCommandReturnsExitOn_exit_quit()
+        public void GetCommandReturnsExitOn_exit_quit()
         {
             input = "exit";
             var response = ui.getCommand(input);
@@ -31,7 +31,7 @@ namespace ElevatorTests
         }
 
         [TestMethod]
-        public void getCommandReturnsExitOn_uppercase()
+        public void GetCommandReturnsExitOn_uppercaseEXIT()
         {
             input = "EXIT";
             var response = ui.getCommand(input);

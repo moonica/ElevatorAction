@@ -14,14 +14,13 @@ namespace ElevatorAction
 
         private readonly List<string> affirmativeInputs = new List<string> { "YES", "Y" };
 
-        public ElevatorMaster(IUserInterface ui, IConfiguration config, Dictionary<string, string> phrases = null)
+        public ElevatorMaster(IUserInterface ui, IConfiguration config, Dictionary<string, string> phrases)
         {
             _ui = ui;
             _config = config;
 
             //Get all phrases from the utils for now, this could come from translation files later
-            if (phrases == null)                
-                _phrases = Utils.Phrases_en; 
+            _phrases = phrases;
 
             //override the retry count with the config value, if present, else leave at the default
             int.TryParse(Utils.GetConfigSetting(_config, "retryCount"), out _retryCount);
