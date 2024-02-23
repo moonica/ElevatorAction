@@ -51,6 +51,7 @@ namespace ElevatorAction
 
                 //if the new input is valid, we can exit the while loop
                 success = (cmd != CommandType.TryAgain);
+                retryIdx++;
             }
 
             //we exited the while loop; let's findout why
@@ -75,7 +76,7 @@ namespace ElevatorAction
             _ui.Display(confirmationMessage, true);
             var confirmationResponse = await _ui.GetInputAsync();
 
-            if (affirmativeInputs.Contains(confirmationResponse))
+            if (affirmativeInputs.Contains(confirmationResponse?.Trim()?.ToUpper()))
                 _ui.ShutDown();
         }
 

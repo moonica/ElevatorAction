@@ -15,10 +15,10 @@ namespace ElevatorTests
         private int commandListCounter = 0;
         
         public CommandType TestCommand = CommandType.Exit;
-        public string TestInput = string.Empty;
+        public string TestInput;
         public bool multipleCommands = false;
         public List<string> outputs = new List<string>();
-        public string ExitString = "Application ended";
+        public static string ExitString = "Application ended";
 
         public TestInterface() 
         {
@@ -53,7 +53,7 @@ namespace ElevatorTests
         public void ShutDown()
         {
             Debug.WriteLine(ExitString);
-            outputs.Add(CommandType.Exit.ToString());
+            outputs.Add(ExitString);
         }
 
         public void SetMultipleCommands(List<CommandType> commands)
@@ -70,6 +70,7 @@ namespace ElevatorTests
             commandListCounter = 0;
             listOfCommands = new List<CommandType>();
             outputs= new List<string>();
+            TestInput = null;
         }
     }
 }
