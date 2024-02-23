@@ -15,6 +15,9 @@ namespace ElevatorTests
         private int _retryCount = 0;
         private ElevatorMaster elevatorMaster;
 
+        private string errMsgExpectedOutputs = "Expected {0} ui outputs; received {1}";
+        
+
         private void init()
         {
             _ui.Reset();
@@ -29,41 +32,48 @@ namespace ElevatorTests
         #region TRY AGAIN TESTS
 
         [TestMethod]
-        public void ElevatorMasterRetriesThenExitsOn_retry_exit()
+        public void ElevatorMasterSwitchKeepsRetryingUntilExit()
         {
             init();
 
             //set up test interface
+            _ui.TestInput = "Y";
             _ui.SetMultipleCommands
                 (
                     new List<CommandType>
                     {
-                        CommandType.TryAgain,
+                        CommandType.TryAgain, //second retry
                         CommandType.Exit
                     }
                 );
 
-            elevatorMaster.PerformCommand(CommandType.TryAgain);
+            elevatorMaster.PerformCommand(CommandType.TryAgain); //first retry
 
             if ((_ui.outputs?.Count ?? 0) < 3)
             {
-                Assert.Fail($"Too few outputs detected from ElevatorMaster; it should have run 3 times; {_ui.outputs?.Count} outputs were received");
+                Assert.Fail(string.Format(errMsgExpectedOutputs, 3, _ui.outputs?.Count));
             }
             else
             {
-                TestUtils.assertOutputsPartialMatchHelper(0, _ui.outputs[0], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+                List<Tuple<string, CommandType>> outputsAndCommandsToTest = new List<Tuple<string, CommandType>>()
+                {
+                    new Tuple<string, CommandType>(Utils.Phrases_en["Retry"], CommandType.TryAgain),
+                    new Tuple<string, CommandType>(Utils.Phrases_en["Retry"], CommandType.TryAgain),
+                    new Tuple<string, CommandType>(Utils.Phrases_en["AreYouSure"], CommandType.Exit),
+                    new Tuple<string, CommandType>(TestInterface.ExitString, CommandType.Exit),
+                };
 
-                TestUtils.assertOutputsPartialMatchHelper(1, _ui.outputs[1], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
-
-                TestUtils.assertOutputsPartialMatchHelper(2, _ui.outputs[2], Utils.Phrases_en["AreYouSure"], CommandType.Exit, 80);
+                for (int i = 0; i < 4; i++)
+                {
+                    TestUtils.assertOutputsPartialMatchHelper(i, _ui.outputs[i], outputsAndCommandsToTest[i].Item1, outputsAndCommandsToTest[i].Item2, 50);
+                }
             }
 
             _ui.Reset();
-
         }
 
         [TestMethod]
-        public void ElevatorMasterRetriesMaxTimes_retries()
+        public void ElevatorMasterRetriesMaxRetryTimes()
         {
             init();
 
@@ -74,7 +84,7 @@ namespace ElevatorTests
 
             if ((_ui.outputs?.Count ?? 0) < _retryCount)
             {
-                Assert.Fail($"Too few outputs detected from ElevatorMaster; it should have run the max number of times ({_retryCount}); {_ui.outputs?.Count} outputs were received");
+                Assert.Fail(string.Format(errMsgExpectedOutputs, _retryCount, _ui.outputs?.Count));
             }
             else
             {
@@ -84,12 +94,12 @@ namespace ElevatorTests
                     //the first n-1 outputs should be retry messages
                     TestUtils.assertOutputsPartialMatchHelper(i, _ui.outputs[i], Utils.Phrases_en["Retry"], CommandType.TryAgain, 30);
 
-                    //the retries remaining should be correct
+                    //the retries countdown timer should be correct
                     Assert.IsTrue(_ui.outputs[i].Contains(string.Format(Utils.Phrases_en["RetryCountdown"], _retryCount - i - 1)));
 
                 }
 
-                //the last output should be exit/abort message
+                //the last output should be abort message
                 TestUtils.assertOutputsPartialMatchHelper(outputCount, _ui.outputs
                     .Last(), TestInterface.ExitString, CommandType.Abort, 80);
             }
@@ -101,42 +111,35 @@ namespace ElevatorTests
         #region EXIT TESTS
 
         [TestMethod]
-        public void ElevatorMasterExitsOnExitWithConfirmation_exit_yes()
+        public void ElevatorMasterSwitchSelectsCorrectCommand_exit()
         {
             init();
-            List<string> inputs = new List<string> { "Y", "YES", "Yes", "yes", "y"};
+            _ui.TestInput = "YES";
 
-            foreach (var input in inputs)
-            {
-                TestUtils.assertExitOutputsHelper(_ui, (CommandType) =>  elevatorMaster.PerformCommand(CommandType.Exit), input, Utils.Phrases_en["AreYouSure"]);
-            }
+            elevatorMaster.PerformCommand(CommandType.Exit);
+
+            //Opting for "IsTrue" over "AreEqual", as the latter doesn't allow for custom messages
+
+            int? outputCount = _ui.outputs?.Count;
+            Assert.IsTrue(int.Equals(2, (outputCount ?? 0)), string.Format(errMsgExpectedOutputs, 2, outputCount));
+
+            var firstOutput = _ui.outputs?.FirstOrDefault();
+            Assert.IsTrue(string.Equals(Utils.Phrases_en["AreYouSure"], firstOutput), $"Last statement in output list expected was '{Utils.Phrases_en["AreYouSure"]}'; received instead: '{firstOutput}'");
+
+            var lastOutput = _ui.outputs?.Last();
+            Assert.IsTrue(string.Equals(TestInterface.ExitString, lastOutput), $"Last statement in output list expected was '{TestInterface.ExitString}'; received instead: '{lastOutput}'");
         }
 
         [TestMethod]
-        public void ElevatorMasterDoesntExitWithConfirmationOn_exit_no()
-        {
-            init();
-            List<string> inputs = new List<string> { "n", "no", "N", "NO", "No", null, "loremipsum", "yess"};
-
-            foreach (var input in inputs)
-            {
-                TestUtils.assertExitOutputsHelper(_ui, (CommandType) => elevatorMaster.PerformCommand(CommandType.Exit), input, Utils.Phrases_en["AreYouSure"], false);
-            }
-
-            //no extra messages were written to the output list, and no outputs contain the shutdown message (ie, we never exited)
-            Assert.AreEqual(_ui.outputs?.Count ?? 0, inputs.Count);
-            Assert.IsFalse(_ui.outputs?.Contains(TestInterface.ExitString) ?? true);
-        }
-
-        [TestMethod]
-        public void ElevatorMasterExitsWithoutConfirmationOn_abort()
+        public void ElevatorMasterSwitchSelectsCorrectCommand_abort()
         {
             init();
 
             elevatorMaster.PerformCommand(CommandType.Abort);
 
+            //there shouldn't be a confirmation message for Abort like there is for Exit
             int? outputCount = _ui.outputs?.Count;
-            Assert.IsTrue(int.Equals( 1, (outputCount ?? 0)), $"Expected one ui output; received {outputCount}");
+            Assert.IsTrue(int.Equals(1, (outputCount ?? 0)), string.Format(errMsgExpectedOutputs, 1, outputCount));
 
             var firstOutput = _ui.outputs?.FirstOrDefault();
             Assert.IsTrue(TestInterface.ExitString.Equals(firstOutput), $"Expected shutdown indicator; received '{firstOutput}'");

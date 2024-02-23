@@ -43,11 +43,11 @@ namespace ElevatorTests
             }
         }
 
-        public static void assertExitOutputsHelper(TestInterface ui, Action<CommandType> performCommand, string confirmationInputToTest, string expectedConfirmationOutput, bool shouldExit = true)
+        public static void assertExitOutputsHelper<TLambdaInput>(TestInterface ui, Action<TLambdaInput> performCommand, TLambdaInput commandInput, string confirmationInputToTest, string expectedConfirmationOutput, bool shouldExit = true)
         {
             ui.TestInput = confirmationInputToTest;
 
-            performCommand(CommandType.Exit);
+            performCommand(commandInput);
 
             if ((ui.outputs?.Count ?? 0) < (shouldExit ? 2 : 1))
             {

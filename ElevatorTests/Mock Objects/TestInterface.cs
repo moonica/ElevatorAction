@@ -56,6 +56,10 @@ namespace ElevatorTests.MockObjects
             outputs.Add(ExitString);
         }
 
+        /// <summary>
+        /// Use this method to set a sequence of commands, to immitate a user entering subsequent commands 
+        /// </summary>
+        /// <param name="commands"></param>
         public void SetMultipleCommands(List<CommandType> commands)
         {
             multipleCommands = true;
