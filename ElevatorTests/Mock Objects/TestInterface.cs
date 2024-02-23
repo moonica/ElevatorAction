@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using ElevatorAction.UserInterface;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
-namespace ElevatorTests
+namespace ElevatorTests.MockObjects
 {
     internal class TestInterface : IUserInterface
     {

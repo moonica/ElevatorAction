@@ -25,7 +25,7 @@ namespace ElevatorAction
             //override the retry count with the config value, if present, else leave at the default
             int.TryParse(Utils.GetConfigSetting(_config, "retryCount"), out _retryCount);
 
-            controller = new ElevatorController(_ui, _phrases, _retryCount);
+            controller = new ElevatorController(_ui, _retryCount);
         }
 
         internal async Task Execute()

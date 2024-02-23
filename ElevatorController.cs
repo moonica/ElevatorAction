@@ -4,14 +4,14 @@ using Microsoft.Extensions.Configuration;
 
 namespace ElevatorAction
 {
-    internal class ElevatorController
+    public class ElevatorController
     {
         private IUserInterface _ui;
         private int _retryCount = 5; //default
 
         private readonly List<string> affirmativeInputs = new List<string> { "YES", "Y" };
 
-        internal ElevatorController(IUserInterface ui, Dictionary<string, string> phrases, int? retryCount = null)
+        public ElevatorController(IUserInterface ui, int? retryCount = null)
         {
             _ui = ui;
 
@@ -19,7 +19,7 @@ namespace ElevatorAction
                 _retryCount = retryCount.Value;
         }
 
-        private bool validateRetryCount(int? retryCount)
+        public bool validateRetryCount(int? retryCount)
         {
             return 
                 (

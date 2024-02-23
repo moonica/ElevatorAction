@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ElevatorTests
+namespace ElevatorTests.MockObjects
 {
     internal class TestConfig : IConfiguration
     {
