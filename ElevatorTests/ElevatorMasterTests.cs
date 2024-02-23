@@ -142,6 +142,5 @@ namespace ElevatorTests
         }
 
         #endregion EXIT TESTS
-
     }
 }
