@@ -1,9 +1,11 @@
 ﻿using ElevatorAction;
-using ElevatorAction.UserInterface;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 using ElevatorTests.MockObjects;
+using ElevatorAction.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 
 namespace ElevatorTests
 {
@@ -14,6 +16,7 @@ namespace ElevatorTests
         private TestInterface _ui = new TestInterface();
         private int _retryCount = 0;
         private ElevatorMaster elevatorMaster;
+        private ILogger _log = new TestLogger();
 
         private string errMsgExpectedOutputs = "Expected {0} ui outputs; received {1}";
         
@@ -23,7 +26,7 @@ namespace ElevatorTests
             _ui.Reset();
 
             if (elevatorMaster is null)
-                elevatorMaster = new ElevatorMaster(_ui, _config, Utils.Phrases_en);
+                elevatorMaster = new ElevatorMaster(_ui, _config, _log, Utils.Phrases_en);
             
             if (_retryCount == 0)
                 _retryCount = TestUtils.nrRetries;
@@ -32,7 +35,7 @@ namespace ElevatorTests
         #region TRY AGAIN TESTS
 
         [TestMethod]
-        public void ElevatorMasterSwitchKeepsRetryingUntilExit()
+        public void ElevatorMasterSwitchKeepsRetryingUntilValidCommand()
         {
             init();
 
@@ -43,7 +46,7 @@ namespace ElevatorTests
                     new List<CommandType>
                     {
                         CommandType.TryAgain, //second retry
-                        CommandType.Exit
+                        CommandType.Test      //valid, final command
                     }
                 );
 
@@ -54,19 +57,15 @@ namespace ElevatorTests
                 Assert.Fail(string.Format(errMsgExpectedOutputs, 3, _ui.outputs?.Count));
             }
             else
-            {
-                List<Tuple<string, CommandType>> outputsAndCommandsToTest = new List<Tuple<string, CommandType>>()
+            {                
+                //first two outputs should be retries
+                for (int i = 0; i < 2; i++)
                 {
-                    new Tuple<string, CommandType>(Utils.Phrases_en["Retry"], CommandType.TryAgain),
-                    new Tuple<string, CommandType>(Utils.Phrases_en["Retry"], CommandType.TryAgain),
-                    new Tuple<string, CommandType>(Utils.Phrases_en["AreYouSure"], CommandType.Exit),
-                    new Tuple<string, CommandType>(TestInterface.ExitString, CommandType.Exit),
-                };
-
-                for (int i = 0; i < 4; i++)
-                {
-                    TestUtils.assertOutputsPartialMatchHelper(i, _ui.outputs[i], outputsAndCommandsToTest[i].Item1, outputsAndCommandsToTest[i].Item2, 50);
+                    TestUtils.assertOutputsPartialMatchHelper(i, Utils.Phrases_en["Retry"], _ui.outputs?[i], CommandType.TryAgain);
                 }
+
+                //last output should be Test command
+                TestUtils.assertOutputsPartialMatchHelper(2, TestUtils.strTested, _ui.outputs?.Last(), CommandType.Test);
             }
 
             _ui.Reset();

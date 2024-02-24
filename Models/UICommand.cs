@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ElevatorAction.UserInterface
+namespace ElevatorAction.Models
 {
     /// <summary>
     /// An object that represents a command together with its details
@@ -26,7 +26,7 @@ namespace ElevatorAction.UserInterface
             { CommandType.ListElevatorStates, "See a list of all elevators currently in operation with their states (eg. current floor, nr passengers, movement)" }
         };
 
-        public CommandType CommandType;
+        public CommandType ThisCommandType;
 
         /// <summary>
         /// Readonly. String representation of the command name
@@ -35,15 +35,15 @@ namespace ElevatorAction.UserInterface
         {
             get
             {
-                return CommandType.ToString()?.Trim()?.ToUpper();
+                return ThisCommandType.ToString()?.Trim()?.ToUpper();
             }
         }
 
         public string CommandDescription
         {
-            get 
-            { 
-                return commandDescriptions[CommandType];
+            get
+            {
+                return commandDescriptions[ThisCommandType];
             }
         }
 
@@ -56,7 +56,7 @@ namespace ElevatorAction.UserInterface
         {
             var result = new List<string>();
             var strBuilder = new StringBuilder();
-            var commands = Enum.GetValues<CommandType>();            
+            var commands = Enum.GetValues<CommandType>();
 
             foreach (var cmd in commands)
             {
