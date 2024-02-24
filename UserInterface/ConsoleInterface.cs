@@ -1,4 +1,5 @@
-﻿using static System.Net.Mime.MediaTypeNames;
+﻿using ElevatorAction.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ElevatorAction.UserInterface
 {
@@ -9,13 +10,37 @@ namespace ElevatorAction.UserInterface
         //This dictionary makes the list of set commands easily (and cheaply) retrieved by string keyword, but minimizes the need for error prone and unreadable text matching throughout the code
         private readonly Dictionary<string, CommandType> commandList = new Dictionary<string, CommandType> {
             { string.Empty, CommandType.TryAgain },
+            { "ABORT", CommandType.Abort },
+            { "CALLELEVATOR", CommandType.CallElevator },
+            { "CREATEELEVATOR", CommandType.CreateElevator },
+            { "DELETEELEVATOR", CommandType.DeleteElevator },
+            { "DISABLEELEVATOR", CommandType.DisableElevator },
+            { "ENABLEELEVATOR", CommandType.EnableElevator },
             { "EXIT", CommandType.Exit },
+            { "HELP", CommandType.Help },
+            { "DETAILS", CommandType.ListElevatorDetails },
+            { "LIST", CommandType.ListElevators },
+            { "STATES", CommandType.ListElevatorStates },
+            { "TRYAGAIN", CommandType.TryAgain },
+            { "TEST", CommandType.Test },
             { "QUIT", CommandType.Exit }
         };
 
         private readonly string CONFIRM_STRING = "Type 'Y' to confirm or 'N' to cancel";
 
         #endregion PRIVATE PROPERTIES
+
+
+        #region PUBLIC PROPERTIES
+        public string PressAnyKeyTranslationKey
+        {
+            get
+            {
+                return "PressAnyKey";
+            }
+        }
+
+        #endregion PUBLIC PROPERTIES
 
 
         #region PUBLIC METHODS
@@ -60,10 +85,16 @@ namespace ElevatorAction.UserInterface
 
             return getCommand(input);
         }
-
+        
         public void ShutDown()
         {
             Environment.Exit(0);
+        }
+
+        public Task WaitForUserActionAsync()
+        {
+            Console.Read();
+            return Task.CompletedTask;
         }
 
         #endregion PUBLIC METHODS

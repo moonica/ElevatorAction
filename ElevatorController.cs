@@ -80,9 +80,13 @@ namespace ElevatorAction
                 _ui.ShutDown();
         }
 
-        public void PerformShutdownWithFinalMessage(string message)
+        public async Task PerformShutdownWithFinalMessage(string message, bool waitForUserAction = false)
         {
             _ui.Display(message);
+
+            if (waitForUserAction)
+                await _ui.WaitForUserActionAsync();
+
             _ui.ShutDown();
         }
     }
