@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ElevatorAction.UserInterface
+namespace ElevatorAction.Models
 {
     public enum CommandType
     {
@@ -20,5 +20,8 @@ namespace ElevatorAction.UserInterface
         ListElevators,
         ListElevatorStates,
         TryAgain,
+        Test
     }
 }
+
+
