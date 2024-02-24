@@ -1,9 +1,9 @@
 ﻿using ElevatorAction;
-using ElevatorAction.UserInterface;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 using ElevatorTests.MockObjects;
+using ElevatorAction.Models;
 
 namespace ElevatorTests
 {
@@ -14,15 +14,23 @@ namespace ElevatorTests
         private int _retryCount = 0;
         private ElevatorController elevatorController;
 
-        private void init()
+        private void init(int? retryCount = null)
         {
             _ui.Reset();
 
-            if (elevatorController is null)
-                elevatorController = new ElevatorController(_ui, _retryCount);
+            //if the retrycount is being set from the caller, use that value
+            if (retryCount.HasValue)
+                _retryCount = retryCount.Value;
+            else
+            {
+                //if retrycount was not already initialised (is still default value), use the "config" value
+                if (_retryCount == 0)
+                    _retryCount = TestUtils.nrRetries;
+            }
 
-            if (_retryCount == 0)
-                _retryCount = TestUtils.nrRetries;
+            //if elevator controller is not yet initialised, or a new retry count has been specified, initialise the controller 
+            if ((elevatorController is null) || retryCount.HasValue)
+                elevatorController = new ElevatorController(_ui, _retryCount);
         }
 
         #region VALIDATION TESTS
@@ -52,41 +60,81 @@ namespace ElevatorTests
                 Assert.IsFalse(elevatorController.validateRetryCount(val), $"Invalid value {val} managed to get past ElevatorController.validateRetryCount");
             }
         }
+
         #endregion VALIDATION TESTS
 
 
         #region RETRY TESTS
 
-        public void ElevatorControllerRetriesThenExits()
+        [TestMethod]
+        public async void GetCommandAfterRetry_NoRetryMax_ReturnsValidCommandAfterManyTries()
         {
-            //init();
-            //_ui.SetMultipleCommands
-            //    (
-            //        new List<CommandType>
-            //        {
-            //            CommandType.TryAgain,
-            //            CommandType.Exit
-            //        }
-            //    );
+            init(-1); //no max retries
 
-            //elevatorMaster.PerformCommand(CommandType.TryAgain);
+            _ui.TestInput = "lorem ipsum"; //invalid input
+            CommandType commandReturned;
+            int commandCounter = 0;
 
-            //if ((_ui.outputs?.Count ?? 0) < 3)
-            //{
-            //    Assert.Fail(string.Format(errMsgExpectedOutputs, 3, _ui.outputs?.Count));
-            //}
-            //else
-            //{
-            //    TestUtils.assertOutputsPartialMatchHelper(0, _ui.outputs[0], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+            //retry many times without being kicked out, since retries should be unlimited
+            for (commandCounter = 0; commandCounter < 20; commandCounter++)
+            {
+                commandReturned = await elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]);
 
-            //    TestUtils.assertOutputsPartialMatchHelper(1, _ui.outputs[1], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+                TestUtils.assertCommandsMatchHelper(CommandType.TryAgain, commandReturned);
+            }
 
-            //    TestUtils.assertOutputsPartialMatchHelper(2, _ui.outputs[2], Utils.Phrases_en["AreYouSure"], CommandType.Exit, 80);
-            //}
+            Assert.IsTrue(commandCounter == 20, $"With no retry max set, we should have seen 20 retry attempts. Actual value: {commandCounter}");
 
-            //_ui.Reset();
+            //finish on a valid input to exit the retry cycle
+            _ui.TestInput = "TEST"; 
 
+            commandReturned = await elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]);
+
+            TestUtils.assertCommandsMatchHelper(CommandType.Test, commandReturned);
+
+            _ui.Reset();
         }
+
+        public async void GetCommandAfterRetry_RetryMaxZero_Aborts()
+        {
+            init(0); //zero max retries (not valid value)
+
+            _ui.TestInput = "lorem ipsum"; //doesn't matter
+                                           
+            var commandReturned = await elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]);
+
+            TestUtils.assertCommandsMatchHelper(CommandType.Abort, commandReturned);
+
+            _ui.Reset();
+        }
+        //init();
+        //_ui.SetMultipleCommands
+        //    (
+        //        new List<CommandType>
+        //        {
+        //            CommandType.TryAgain,
+        //            CommandType.Exit
+        //        }
+        //    );
+
+        //elevatorMaster.PerformCommand(CommandType.TryAgain);
+
+        //if ((_ui.outputs?.Count ?? 0) < 3)
+        //{
+        //    Assert.Fail(string.Format(errMsgExpectedOutputs, 3, _ui.outputs?.Count));
+        //}
+        //else
+        //{
+        //    TestUtils.assertOutputsPartialMatchHelper(0, _ui.outputs[0], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+
+        //    TestUtils.assertOutputsPartialMatchHelper(1, _ui.outputs[1], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+
+        //    TestUtils.assertOutputsPartialMatchHelper(2, _ui.outputs[2], Utils.Phrases_en["AreYouSure"], CommandType.Exit, 80);
+        //}
+
+        //_ui.Reset();
+
+        //}
 
         #endregion RETRY TESTS
 
@@ -121,19 +169,18 @@ namespace ElevatorTests
             Assert.IsFalse(_ui.outputs?.Contains(TestInterface.ExitString) ?? true);
         }
 
-
         #endregion SHUTDOWN TESTS
 
         //Template
         #region  TESTS
 
-        [TestMethod]
-        public void myTest()
-        {
-            init();
+        //[TestMethod]
+        //public void myTest()
+        //{
+        //    init();
 
 
-        }
+        //}
 
         #endregion TESTS
 
