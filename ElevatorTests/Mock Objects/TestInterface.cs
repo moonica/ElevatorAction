@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ElevatorAction.Models;
 using ElevatorAction.UserInterface;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
@@ -19,6 +20,14 @@ namespace ElevatorTests.MockObjects
         public bool multipleCommands = false;
         public List<string> outputs = new List<string>();
         public static string ExitString = "Application ended";
+
+        public string PressAnyKeyTranslationKey
+        {
+            get
+            {
+                return "PressAnyKey";
+            }
+        }
 
         public TestInterface() 
         {
@@ -75,6 +84,11 @@ namespace ElevatorTests.MockObjects
             listOfCommands = new List<CommandType>();
             outputs= new List<string>();
             TestInput = null;
+        }
+
+        public Task WaitForUserActionAsync()
+        {
+            return Task.CompletedTask;
         }
     }
 }
