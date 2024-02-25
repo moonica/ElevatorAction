@@ -10,10 +10,10 @@ namespace ElevatorAction.Models
     /// <summary>
     /// An object that represents a command together with its details
     /// </summary>
-    internal class UICommand
+    public class UICommand
     {
         //User friendly descriptions for all elevator console commands. They could also be put in a localization dictionary per language. Private/control commands do not need to be included here as they shouldn't appear in the Help documentation
-        private static Dictionary<CommandType, string> commandDescriptions = new Dictionary<CommandType, string>()
+        public static Dictionary<CommandType, string> commandDescriptions = new Dictionary<CommandType, string>()
         {
             { CommandType.CallElevator, "A user can use this command to call an elevator to their current floor" },
             { CommandType.CreateElevator, "Use this command to add a new elevator to the database" },
