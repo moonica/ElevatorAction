@@ -7,7 +7,7 @@ using ElevatorAction.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 
-namespace ElevatorTests
+namespace ElevatorTests.Tests
 {
     [TestClass]
     public class ElevatorMasterTests
@@ -20,7 +20,7 @@ namespace ElevatorTests
         private ILogger _log = new TestLogger();
 
         private string errMsgExpectedOutputs = "Expected {0} ui outputs; received {1}";
-        
+
 
         private void init()
         {
@@ -29,7 +29,7 @@ namespace ElevatorTests
 
             if (elevatorMaster is null)
                 elevatorMaster = new ElevatorMaster(_ui, _config, _log, Utils.Phrases_en);
-            
+
             if (_retryCount == 0)
                 _retryCount = TestUtils.nrRetries;
         }
@@ -59,7 +59,7 @@ namespace ElevatorTests
                 Assert.Fail(string.Format(errMsgExpectedOutputs, 3, _ui.outputs?.Count));
             }
             else
-            {                
+            {
                 //first two outputs should be retries
                 for (int i = 0; i < 2; i++)
                 {
@@ -122,7 +122,7 @@ namespace ElevatorTests
             //Opting for "IsTrue" over "AreEqual", as the latter doesn't allow for custom messages
 
             int? outputCount = _ui.outputs?.Count;
-            Assert.IsTrue(int.Equals(2, (outputCount ?? 0)), string.Format(errMsgExpectedOutputs, 2, outputCount));
+            Assert.IsTrue(Equals(2, outputCount ?? 0), string.Format(errMsgExpectedOutputs, 2, outputCount));
 
             var firstOutput = _ui.outputs?.FirstOrDefault();
             Assert.IsTrue(string.Equals(Utils.Phrases_en["AreYouSure"], firstOutput), $"Last statement in output list expected was '{Utils.Phrases_en["AreYouSure"]}'; received instead: '{firstOutput}'");
@@ -140,12 +140,21 @@ namespace ElevatorTests
 
             //there shouldn't be a confirmation message for Abort like there is for Exit
             int? outputCount = _ui.outputs?.Count;
-            Assert.IsTrue(int.Equals(1, (outputCount ?? 0)), string.Format(errMsgExpectedOutputs, 1, outputCount));
+            Assert.IsTrue(Equals(1, outputCount ?? 0), string.Format(errMsgExpectedOutputs, 1, outputCount));
 
             var firstOutput = _ui.outputs?.FirstOrDefault();
             Assert.IsTrue(TestInterface.ExitString.Equals(firstOutput), $"Expected shutdown indicator; received '{firstOutput}'");
         }
 
         #endregion EXIT TESTS
+
+
+        [TestMethod]
+        public void ElevatorMasterSwitchSelectsCorrectCommand_help()
+        {
+            init();
+
+            TestUtils.assertHelpCommandsDisplayed(() => elevatorMaster.PerformCommand(CommandType.Help), _ui);
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace ElevatorAction.Models
     public class UICommand
     {
         //User friendly descriptions for all elevator console commands. They could also be put in a localization dictionary per language. Private/control commands do not need to be included here as they shouldn't appear in the Help documentation
-        public static Dictionary<CommandType, string> commandDescriptions = new Dictionary<CommandType, string>()
+        public static Dictionary<CommandType, string> CommandDescriptions = new Dictionary<CommandType, string>()
         {
             { CommandType.CallElevator, "A user can use this command to call an elevator to their current floor" },
             { CommandType.CreateElevator, "Use this command to add a new elevator to the database" },
@@ -45,6 +45,14 @@ namespace ElevatorAction.Models
             { CommandType.Test, false }
         };
 
+        /// <summary>
+        /// The format a list of commands should be displayed in
+        /// </summary>
+        public readonly static string HelpFormat = "[{0}] {1} : {2}";
+
+        /// <summary>
+        /// The type of command this instance is
+        /// </summary>
         public CommandType ThisCommandType;
 
         /// <summary>
@@ -62,7 +70,7 @@ namespace ElevatorAction.Models
         {
             get
             {
-                return commandDescriptions[ThisCommandType];
+                return CommandDescriptions[ThisCommandType];
             }
         }
 
@@ -70,13 +78,14 @@ namespace ElevatorAction.Models
         /// <summary>
         /// Return a list of all possible commands, with their descriptions.
         /// </summary>
-        /// <returns>Returns a list of commands with descriptions</returns>
-        public static List<string> ListPublicCommands()
+        /// <param name="format">Optional. If left blank, the default format is used. If specified, it needs to contain parameters (in the format '{0}') for, in this order: command number, command name, command description</param>
+        /// <returns></returns>
+        public static List<string> ListPublicCommands(string format = null)
         {
             var result = new List<string>();
-            var strBuilder = new StringBuilder();
+            string cmdStr;
             var commands = Enum.GetValues<CommandType>();
-            int i = 0;
+            int i = 1;
 
             foreach (var cmd in commands)
             {
@@ -84,19 +93,25 @@ namespace ElevatorAction.Models
                 if (isCommandPublic.ContainsKey(cmd) && !isCommandPublic[cmd])
                     continue;
 
-                strBuilder = new StringBuilder("[").Append(i).Append("] ")
-                    .Append(cmd.ToString()).Append(": ");                
+                cmdStr = string.Format((format ?? HelpFormat), i++, cmd.ToString(),
+                    (CommandDescriptions.ContainsKey(cmd)
+                    ? CommandDescriptions[cmd]
+                    : ""));
 
-                if (commandDescriptions.ContainsKey(cmd))
-                    strBuilder.Append(commandDescriptions[cmd]);
 
-                //do not add line breaks, leave that for the interface to figure out for its specific format
-
-                result.Add(strBuilder.ToString());
-                i++;
+                result.Add(cmdStr);
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Use this method to easily see how many commands there are that are public/accessible to the end user
+        /// </summary>
+        /// <returns></returns>
+        public static int? CountPublicCommands()
+        {
+            return isCommandPublic.Where(kv => kv.Value == true)?.Count();
         }
     }
 }

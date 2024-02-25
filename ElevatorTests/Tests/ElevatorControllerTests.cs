@@ -6,7 +6,7 @@ using ElevatorTests.MockObjects;
 using ElevatorAction.Models;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
-namespace ElevatorTests
+namespace ElevatorTests.Tests
 {
     [TestClass]
     public class ElevatorControllerTests
@@ -32,7 +32,7 @@ namespace ElevatorTests
             }
 
             //if elevator controller is not yet initialised, or a new retry count has been specified, initialise the controller 
-            if ((elevatorController is null) || retryCount.HasValue)
+            if (elevatorController is null || retryCount.HasValue)
                 elevatorController = new ElevatorController(_ui, _log, _retryCount);
         }
 
@@ -255,7 +255,7 @@ namespace ElevatorTests
 
             foreach (var input in inputs)
             {
-                TestUtils.assertExitOutputsHelper<string>(_ui, (string s) => elevatorController.PerformShutdownWithConfirmation(Utils.Phrases_en["AreYouSure"]), Utils.Phrases_en["AreYouSure"], input, Utils.Phrases_en["AreYouSure"]);
+                TestUtils.assertExitOutputsHelper(_ui, (s) => elevatorController.PerformShutdownWithConfirmation(Utils.Phrases_en["AreYouSure"]), Utils.Phrases_en["AreYouSure"], input, Utils.Phrases_en["AreYouSure"]);
             }
         }
 
@@ -267,7 +267,7 @@ namespace ElevatorTests
 
             foreach (var input in inputs)
             {
-                TestUtils.assertExitOutputsHelper<string>(_ui, (string s) => elevatorController.PerformShutdownWithConfirmation(Utils.Phrases_en["AreYouSure"]), Utils.Phrases_en["AreYouSure"], input, Utils.Phrases_en["AreYouSure"], false);
+                TestUtils.assertExitOutputsHelper(_ui, (s) => elevatorController.PerformShutdownWithConfirmation(Utils.Phrases_en["AreYouSure"]), Utils.Phrases_en["AreYouSure"], input, Utils.Phrases_en["AreYouSure"], false);
             }
 
             //no extra messages were written to the output list, and no outputs contain the shutdown message (ie, we never exited)
@@ -276,6 +276,15 @@ namespace ElevatorTests
         }
 
         #endregion SHUTDOWN TESTS
+
+
+        [TestMethod]
+        public void DisplayHelp_DisplaysPublicCommands()
+        {
+            init();
+
+            TestUtils.assertHelpCommandsDisplayed(() => elevatorController.DisplayHelp(), _ui);
+        }
 
         /*
         Template
@@ -288,7 +297,7 @@ namespace ElevatorTests
 
 
         }
-        
+
         #endregion TESTS
         */
     }

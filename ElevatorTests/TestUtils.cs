@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ElevatorAction;
 using ElevatorAction.Models;
+using ElevatorAction.UserInterface;
 using ElevatorTests.MockObjects;
 
 namespace ElevatorTests
@@ -86,6 +87,16 @@ namespace ElevatorTests
             }
         }
 
+        /// <summary>
+        /// Assert that, when exiting/aborting, the optional confirmation is displayed if required, and the next command is the exit/abort by checking the outputs
+        /// </summary>
+        /// <typeparam name="TLambdaInput"></typeparam>
+        /// <param name="ui"></param>
+        /// <param name="performCommand"></param>
+        /// <param name="commandInput"></param>
+        /// <param name="confirmationInputToTest"></param>
+        /// <param name="expectedConfirmationOutput"></param>
+        /// <param name="shouldExit"></param>
         public static void assertExitOutputsHelper<TLambdaInput>(TestInterface ui, Action<TLambdaInput> performCommand, TLambdaInput commandInput, string confirmationInputToTest, string expectedConfirmationOutput, bool shouldExit = true)
         {
             ui.TestInput = confirmationInputToTest;
@@ -105,6 +116,54 @@ namespace ElevatorTests
                     //the last output should be exit/abort message
                     Assert.AreEqual(TestInterface.ExitString, ui.outputs[1], $"Expected termination of program. Received: {ui.outputs[1]}");
             }
+        }
+
+        /// <summary>
+        /// We must test that the controller displays the help text when that method is called. We must also test that the ElevatorMaster switches correctly on the "HELP" command call that method on the controller. This function is reusable and tests the output for both scenarios (since there isn't another way to test eg. just the switching)
+        /// </summary>
+        public static void assertHelpCommandsDisplayed(Action performCommand, TestInterface ui)
+        {
+            var publicCommandCount = UICommand.CountPublicCommands();
+            int charsToTestForFormat = 4;
+
+            if (publicCommandCount is null)
+            {
+                Assert.IsTrue(1 == 1, "No public commands found; so we can't really define success for this test");
+                return;
+            }
+
+            performCommand();
+
+            //check the right number of items were displayed
+            Assert.IsTrue(ui.outputs?.Count() == publicCommandCount);
+
+            if (ui.outputs == null)
+            {
+                Assert.Fail("No ui outputs received");
+                return;
+            }
+
+            string expectedStr, resultStr;
+
+            //check a sample of outputs for the right format
+            for (int i = 0; i < Math.Min(3, (ui.outputs?.Count ?? 0)); i++)
+            {
+                //we are just looking for the first few characters to check the number is present and in the right format
+                expectedStr = string.Format(UICommand.HelpFormat, i+1, string.Empty, string.Empty).Substring(0, charsToTestForFormat);
+                resultStr = ui.outputs[i].Substring(0, charsToTestForFormat);
+
+                Assert.IsTrue(expectedStr.Equals(resultStr), $"Expected first {charsToTestForFormat} characters of output number {i}: '{expectedStr}'. Received instead: '{resultStr}'");
+            }
+
+            //check the first entry for the right description
+            var firstPublicCommand = UICommand.isCommandPublic.First(kv => kv.Value == true).Key;
+            expectedStr = string.Format(
+                UICommand.HelpFormat,
+                1,
+                firstPublicCommand.ToString(),
+                UICommand.CommandDescriptions[firstPublicCommand]);
+
+            Assert.IsTrue(expectedStr.Equals(ui.outputs.FirstOrDefault()), $"Expected first output not received. Expected: '{expectedStr}'; received: '{ui.outputs.FirstOrDefault()}'");
         }
     }
 }

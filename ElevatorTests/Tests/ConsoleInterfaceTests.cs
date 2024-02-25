@@ -2,7 +2,7 @@ using ElevatorAction.Models;
 using ElevatorAction.UserInterface;
 using ElevatorTests.MockObjects;
 
-namespace ElevatorTests
+namespace ElevatorTests.Tests
 {
     [TestClass]
     public class ConsoleInterfaceTests
