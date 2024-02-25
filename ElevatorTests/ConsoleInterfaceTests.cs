@@ -1,5 +1,6 @@
 using ElevatorAction.Models;
 using ElevatorAction.UserInterface;
+using ElevatorTests.MockObjects;
 
 namespace ElevatorTests
 {
@@ -7,10 +8,16 @@ namespace ElevatorTests
     public class ConsoleInterfaceTests
     {
         private string input = null;
-        private ConsoleInterface ui = new ConsoleInterface();
+        private TestLogger _log = new TestLogger();
+        private ConsoleInterface ui;
+
+        public ConsoleInterfaceTests()
+        {
+            ui = new ConsoleInterface(_log);
+        }
 
         #region EXIT COMMAND TESTS
-        
+
         [TestMethod]
         public void GetCommand_ReturnsExitOn_null()
         {

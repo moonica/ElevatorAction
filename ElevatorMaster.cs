@@ -68,6 +68,9 @@ namespace ElevatorAction
         {
             switch (command)
             {
+                case CommandType.Help:
+                    await controller.DisplayHelp();
+                    break;
                 case CommandType.Test:
                     //Test command used in unit tests to verify correct switching
                     _ui.Display("Tested");

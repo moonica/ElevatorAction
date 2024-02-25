@@ -11,13 +11,14 @@ namespace ElevatorTests
     [TestClass]
     public class ElevatorControllerTests
     {
-        private TestInterface _ui = new TestInterface();
+        private TestInterface _ui;
         private TestLogger _log = new TestLogger();
         private int _retryCount = -2;
         private ElevatorController elevatorController;
 
         private void init(int? retryCount = null)
         {
+            _ui = new TestInterface(_log);
             _ui.Reset();
 
             //if the retrycount is being set from the caller, use that value

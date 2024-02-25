@@ -12,7 +12,8 @@ namespace ElevatorAction
 
         static void Main(string[] args)
         {
-            var elevatorMaster = new ElevatorMaster(new ConsoleInterface(), _configuration, _logger, Utils.Phrases_en);
+            var _console = new ConsoleInterface(_logger);
+            var elevatorMaster = new ElevatorMaster(_console, _configuration, _logger, Utils.Phrases_en);
 
             //console applications can't really be async, so we can't await the async Execute method
             _ = elevatorMaster.Execute(); 

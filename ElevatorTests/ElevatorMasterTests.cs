@@ -13,7 +13,8 @@ namespace ElevatorTests
     public class ElevatorMasterTests
     {
         private IConfiguration _config = new TestConfig();
-        private TestInterface _ui = new TestInterface();
+        private TestInterface _ui;
+
         private int _retryCount = 0;
         private ElevatorMaster elevatorMaster;
         private ILogger _log = new TestLogger();
@@ -23,6 +24,7 @@ namespace ElevatorTests
 
         private void init()
         {
+            _ui = new TestInterface(_log);
             _ui.Reset();
 
             if (elevatorMaster is null)

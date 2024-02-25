@@ -1,4 +1,6 @@
 ﻿using ElevatorAction.Models;
+using Microsoft.Extensions.Logging;
+using System.Reflection.Metadata.Ecma335;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace ElevatorAction.UserInterface
@@ -6,6 +8,8 @@ namespace ElevatorAction.UserInterface
     public class ConsoleInterface : IUserInterface
     {
         #region PRIVATE PROPERTIES
+
+        private ILogger _logger;
 
         //This dictionary makes the list of set commands easily (and cheaply) retrieved by string keyword, but minimizes the need for error prone and unreadable text matching throughout the code
         private readonly Dictionary<string, CommandType> commandList = new Dictionary<string, CommandType> {
@@ -31,12 +35,35 @@ namespace ElevatorAction.UserInterface
         #endregion PRIVATE PROPERTIES
 
 
+        #region CONSTRUCTORS
+        
+        public ConsoleInterface(ILogger logger)
+        {
+            _logger = logger;
+        }
+        
+        #endregion CONSTRUCTORS
+
+
+
         #region PUBLIC PROPERTIES
         public string PressAnyKeyTranslationKey
         {
             get
             {
                 return "PressAnyKey";
+            }
+        }
+
+        public ILogger UILogger
+        {
+            get
+            {
+                return _logger;
+            }
+            set
+            {
+                _logger = value;
             }
         }
 
@@ -71,6 +98,18 @@ namespace ElevatorAction.UserInterface
                 Console.WriteLine($"{message} {CONFIRM_STRING}");
             else
                 Console.WriteLine(message);
+        }
+
+        public void Display(List<string> messages)
+        {
+            if ((messages?.Count() ?? 0) == 0)
+            {
+                _logger.LogWarning("Method Display(List<string>) received empty/null message list; nothing displayed");
+                return;
+            }
+
+            foreach (var msg in messages)
+                Console.WriteLine(msg);
         }
 
         public async Task<string> GetInputAsync()

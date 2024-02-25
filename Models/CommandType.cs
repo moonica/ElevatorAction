@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ElevatorAction.Models
 {
+    //NB: whenever this list gets changed, the object "UICommand" must get updated with the command's visibility and description
     public enum CommandType
     {
         Abort,

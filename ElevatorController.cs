@@ -105,5 +105,10 @@ namespace ElevatorAction
 
             _ui.ShutDown();
         }
+
+        public async Task DisplayHelp()
+        {
+            _ui.Display(UICommand.ListPublicCommands());
+        }
     }
 }

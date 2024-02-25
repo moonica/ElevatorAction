@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ElevatorAction.Models;
 using ElevatorAction.UserInterface;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 namespace ElevatorTests.MockObjects
@@ -15,7 +16,7 @@ namespace ElevatorTests.MockObjects
         private List<CommandType> listOfCommands;
         private List<string> listOfInputs;
         private int commandListCounter = 0;
-
+        private ILogger _logger;
         private int listCounter = 0;
         
         public CommandType TestCommand = CommandType.Exit;
@@ -33,15 +34,38 @@ namespace ElevatorTests.MockObjects
             }
         }
 
-        public TestInterface() 
+        public ILogger UILogger
         {
+            get
+            {
+                return _logger;
+            }
+            set
+            {
+                _logger = value;
+            }
+        }
+
+        public TestInterface(ILogger logger) 
+        {
+            _logger = logger;
             Reset();
         }
 
         public void Display(string message, bool isConfirmation = false)
         {
+            //no point in mimicing a confirmation Y/N input so ignore the second param
+
             Debug.WriteLine(message);
             outputs.Add(message);
+        }
+
+        public void Display(List<string> messages)
+        {
+            foreach (var msg in messages)
+            {
+                Display(msg);
+            }
         }
 
         public async Task<CommandType> GetCommandAsync()
