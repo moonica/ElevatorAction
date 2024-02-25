@@ -25,6 +25,12 @@ namespace ElevatorAction.Models
         { 
             Success = success;
         }
+
+        public Response(bool success, string message)
+        {
+            Success = success;
+            Message = message;
+        }
     }
 
     /// <summary>
@@ -40,6 +46,16 @@ namespace ElevatorAction.Models
         public Response(bool success) : base(success) 
         {
             Data = default;
+        }
+        public Response(bool success, string message) : base(success, message)
+        {
+            Data = default;
+        }
+
+        public Response(TData data)
+        {
+            Success = true;
+            Data = data;
         }
     }
 }

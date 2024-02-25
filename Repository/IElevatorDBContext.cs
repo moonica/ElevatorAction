@@ -13,10 +13,10 @@ namespace ElevatorAction.Repository
 
         public Response DeleteElevator(int elevatorId);
 
-        public Response<List<Elevator<TCapacityUnit>>> GetAllElevators();
+        public Response<List<TElevatorImplementation>> GetAllElevators<TElevatorImplementation>() where TElevatorImplementation : Elevator<TCapacityUnit>, new();
 
-        public Response<Elevator<TCapacityUnit>> GetElevator(int elevatorId);
+        public Response<TElevatorImplementation> GetElevator<TElevatorImplementation>(int elevatorId) where TElevatorImplementation : Elevator<TCapacityUnit>, new();
 
-        public Response<Elevator<TCapacityUnit>> UpdateElevator(Elevator<TCapacityUnit> elevator);
+        public Response UpdateElevator(Elevator<TCapacityUnit> elevator);
     }
 }

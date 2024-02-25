@@ -68,9 +68,9 @@ namespace ElevatorAction.Repository
         /// Get a list of all elevators in the database
         /// </summary>
         /// <returns></returns>
-        public Response<List<Elevator<TCapacityUnit>>> GetAllElevators()
+        public Response<List<TElevatorImplementation>> GetAllElevators<TElevatorImplementation>() where TElevatorImplementation : Elevator<TCapacityUnit>, new ()
         {
-            return _context.GetAllElevators();
+            return _context.GetAllElevators<TElevatorImplementation>();
         }
 
         /// <summary>
@@ -78,18 +78,18 @@ namespace ElevatorAction.Repository
         /// </summary>
         /// <param name="elevatorId"></param>
         /// <returns></returns>
-        public Response<Elevator<TCapacityUnit>> GetElevator(int elevatorId)
+        public Response<TElevatorImplementation> GetElevator<TElevatorImplementation>(int elevatorId) where TElevatorImplementation : Elevator<TCapacityUnit>, new()
         {
-            return _context.GetElevator(elevatorId);
+            return _context.GetElevator<TElevatorImplementation>(elevatorId);
         }
 
-        public Response<Elevator<TCapacityUnit>> UpdateElevator(Elevator<TCapacityUnit> elevator)
+        public Response UpdateElevator(Elevator<TCapacityUnit> elevator)
         {
             if (!ValidateElevator(elevator).Success)
             {
                 string message = "oops";
                 _logger.LogWarning(message);
-                return new Response<Elevator<TCapacityUnit>>() {  Success = false, Message = message };
+                return new Response(false, message);
             }
 
             return _context.UpdateElevator(elevator);
