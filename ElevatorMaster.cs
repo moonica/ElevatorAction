@@ -71,10 +71,6 @@ namespace ElevatorAction
                 case CommandType.Help:
                     await controller.DisplayHelp();
                     break;
-                case CommandType.Test:
-                    //Test command used in unit tests to verify correct switching
-                    _ui.Display("Tested");
-                    break;
                 case CommandType.TryAgain:
                     await PerformCommand(
                         await controller.GetCommandAfterRetry(_phrases["Retry"], _phrases["RetryCountdown"])
@@ -82,6 +78,10 @@ namespace ElevatorAction
                     break;
                 case CommandType.Exit:
                     await controller.PerformShutdownWithConfirmation(_phrases["AreYouSure"]);
+                    break;
+                case CommandType.Test:
+                    //Test command used in unit tests to verify correct switching
+                    _ui.Display("Tested");
                     break;
                 case CommandType.Abort:
                 default:

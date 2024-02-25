@@ -6,28 +6,49 @@ using System.Threading.Tasks;
 
 namespace ElevatorAction.Models
 {
-    internal class PassengerElevator : Elevator<int>
+    public class PassengerElevator : Elevator<int>
     {
+        #region PRIVATE/PROTECTED PROPERTIES
+
+        private ElevatorTypeEnum _elevatorType;
+        private ElevatorCapacityUnits _capacityUnits;
+
+        #endregion PRIVATE/PROTECTED PROPERTIES
+
+
         #region PUBLIC PROPERTIES
 
         /// <summary>
-        /// Current carrying capacity of the elevator, measured as number of persons
+        /// Elevator type enum. Read only; gets set by constructor of derived classes. Null indicates base elevator type.
         /// </summary>
-        internal int CurrentCapacity_pax;
+        public ElevatorTypeEnum ElevatorType
+        {
+            get
+            {
+                return _elevatorType;
+            }
+        }
 
         /// <summary>
-        /// Maximum capacity of the elevator, measured as number of persons
+        /// Readonly. Field that indicates what units the elevator's capacity is measured in
         /// </summary>
-        internal int MaxCapacity_pax;
+        public ElevatorCapacityUnits CapacityUnits
+        {
+            get 
+            {
+                return _capacityUnits;
+            }
+        }
 
         #endregion PUBLIC PROPERTIES
 
 
         #region CONSTRUCTORS
 
-        internal PassengerElevator() : base()
+        public PassengerElevator() : base()
         {
             _elevatorType = ElevatorTypeEnum.Passenger;
+            _capacityUnits = ElevatorCapacityUnitMapper[ElevatorTypeEnum.Passenger];
         }
 
         #endregion CONSTRUCTORS
@@ -35,9 +56,9 @@ namespace ElevatorAction.Models
 
         #region PUBLIC METHODS
 
-        internal override bool IsFull()
+        public override bool IsFull()
         {
-            return CurrentCapacity_pax >= MaxCapacity_pax;
+            return CurrentCapacity >= MaxCapacity;
         }
 
         /// <summary>
@@ -45,9 +66,9 @@ namespace ElevatorAction.Models
         /// </summary>
         /// <param name="ToAdd">The number of passengers to be added without exceeding capacity</param>
         /// <returns>Returns a boolean indicating if the elevator has the requested capacity available</returns>
-        internal override bool HasRoomFor(int ToAdd)
+        public override bool HasRoomFor(int ToAdd)
         {
-            return (CurrentCapacity_pax + ToAdd) <= MaxCapacity_pax;
+            return (CurrentCapacity + ToAdd) <= MaxCapacity;
         }
 
         #endregion PUBLIC METHODS

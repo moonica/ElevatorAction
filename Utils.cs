@@ -18,7 +18,7 @@ namespace ElevatorAction
             { "RetriesExceeded", "You have entered too many invalid commands, the program will be exited." },
             { "Retry", "That command was not recognized. Please try again, or enter 'Help' to see a list of valid commands." },
             { "RetryCountdown", "{0} retries remaining..." },
-            { "Welcome", "Welcome to Elevator Action. What would you like to do today?" }
+            { "Welcome", "Welcome to Elevator Action. What would you like to do today? Type 'help' to see a list of commands." }
         };
 
         public static string GetConfigSetting(IConfiguration config, string keyName)
