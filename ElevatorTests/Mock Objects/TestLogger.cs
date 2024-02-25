@@ -22,7 +22,7 @@ namespace ElevatorTests.MockObjects
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            Debug.WriteLine($"[{logLevel.ToString().ToUpper()}] {exception?.Message}", logLevel.ToString());
+            Debug.WriteLine($" {exception?.Message}", logLevel.ToString());
         }
     }
 }

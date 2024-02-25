@@ -1,22 +1,26 @@
 ﻿using ElevatorAction.UserInterface;
 using ElevatorAction.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace ElevatorAction
 {
     public class ElevatorController
     {
         private IUserInterface _ui;
+        private ILogger _log;
         private int _retryCount = 5; //default
 
         private readonly List<string> affirmativeInputs = new List<string> { "YES", "Y" };
 
-        public ElevatorController(IUserInterface ui, int? retryCount = null)
+        public ElevatorController(IUserInterface ui, ILogger log, int? retryCount = null)
         {
             _ui = ui;
+            _log = log;
 
-            if (validateRetryCount(retryCount))
-                _retryCount = retryCount.Value;
+            //usually the retrycount comes from the config, 
+            if (retryCount.HasValue)
+                _retryCount= retryCount.Value;
         }
 
         public bool validateRetryCount(int? retryCount)
@@ -39,9 +43,19 @@ namespace ElevatorAction
             bool success = false;
             var msg = string.Empty;
 
+            if (!validateRetryCount(_retryCount))
+            {
+                var errMsg = $"The configuration value for max number of retries is invalid";
+
+                _log.LogError($"{errMsg} : {_retryCount}");
+
+                throw new ArgumentException($"{errMsg}. Check that it is either a valid, positive integer or -1 to indicate infinate retries.");
+            }
+
             //keep going until we get a command that is recognized, or run out of retries
             while (((_retryCount == -1) || (retryIdx < _retryCount)) && !success)
             {
+
                 //if there's a limit on retries, display how many are left
                 msg = (_retryCount == -1) ? retryMessage : $"{retryMessage} {string.Format(retryCountdownMessage, _retryCount - retryIdx - 1)}";
                 _ui.Display(msg);
@@ -53,6 +67,8 @@ namespace ElevatorAction
                 success = (cmd != CommandType.TryAgain);
                 retryIdx++;
             }
+
+            _log.LogInformation($"[ElevatorController.GetCommandAfterRetry] Internal while loop ran {retryIdx} times before valid command {cmd} was entered");
 
             //we exited the while loop; let's findout why
             if (success)

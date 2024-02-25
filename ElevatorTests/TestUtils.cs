@@ -32,11 +32,13 @@ namespace ElevatorTests
         /// </summary>
         /// <param name="expectedCommand"></param>
         /// <param name="actualCommand"></param>
-        public static void assertCommandsMatchHelper(CommandType expectedCommand, CommandType actualCommand)
+        public static void assertCommandsMatchHelper(CommandType expectedCommand, CommandType actualCommand, int? commandIndex = null)
         {
-            string errMsg = $"Command {expectedCommand} expected; {actualCommand} received instead.";
+            var errMsg = new StringBuilder()
+                .Append(commandIndex.HasValue ? $"index={commandIndex.Value} | " : "")
+                .Append($"Command {expectedCommand} expected; {actualCommand} received instead.");
 
-            Assert.AreEqual(expectedCommand, actualCommand, errMsg);
+            Assert.AreEqual(expectedCommand, actualCommand, errMsg.ToString());
         }
 
         /// <summary>
@@ -44,11 +46,13 @@ namespace ElevatorTests
         /// </summary>
         /// <param name="expectedOutput"></param>
         /// <param name="actualOutput"></param>
-        public static void assertOutputsMatchHelper(string expectedOutput, string actualOutput)
+        public static void assertOutputsMatchHelper(string expectedOutput, string actualOutput, int? commandIndex = null)
         {
-            string errMsg = $"Command {expectedOutput} expected; {actualOutput} received instead.";
+            var errMsg = new StringBuilder()
+                .Append(commandIndex.HasValue ? $"index={commandIndex.Value} | " : "")
+                .Append($"Output '{expectedOutput}' expected; '{actualOutput}' received instead.");
 
-            Assert.AreEqual(expectedOutput, actualOutput, errMsg);
+            Assert.AreEqual(expectedOutput, actualOutput, errMsg.ToString());
         }
 
         /// <summary>

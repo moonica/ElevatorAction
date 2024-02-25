@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 using ElevatorTests.MockObjects;
 using ElevatorAction.Models;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 namespace ElevatorTests
 {
@@ -11,7 +12,8 @@ namespace ElevatorTests
     public class ElevatorControllerTests
     {
         private TestInterface _ui = new TestInterface();
-        private int _retryCount = 0;
+        private TestLogger _log = new TestLogger();
+        private int _retryCount = -2;
         private ElevatorController elevatorController;
 
         private void init(int? retryCount = null)
@@ -24,13 +26,13 @@ namespace ElevatorTests
             else
             {
                 //if retrycount was not already initialised (is still default value), use the "config" value
-                if (_retryCount == 0)
+                if (_retryCount == -2)
                     _retryCount = TestUtils.nrRetries;
             }
 
             //if elevator controller is not yet initialised, or a new retry count has been specified, initialise the controller 
             if ((elevatorController is null) || retryCount.HasValue)
-                elevatorController = new ElevatorController(_ui, _retryCount);
+                elevatorController = new ElevatorController(_ui, _log, _retryCount);
         }
 
         #region VALIDATION TESTS
@@ -67,74 +69,177 @@ namespace ElevatorTests
         #region RETRY TESTS
 
         [TestMethod]
-        public async void GetCommandAfterRetry_NoRetryMax_ReturnsValidCommandAfterManyTries()
+        public void GetCommandAfterRetry_NoRetryMax_ReturnsValidCommandAfterManyTries()
         {
             init(-1); //no max retries
 
-            _ui.TestInput = "lorem ipsum"; //invalid input
             CommandType commandReturned;
-            int commandCounter = 0;
 
-            //retry many times without being kicked out, since retries should be unlimited
-            for (commandCounter = 0; commandCounter < 20; commandCounter++)
+            _ui.multipleCommands = true;
+            var commands = new CommandType[21];
+            Array.Fill(commands, CommandType.TryAgain, 0, 20);
+            commands[20] = CommandType.Test;
+
+            _ui.SetMultipleCommands(commands.ToList());
+
+            //retry many times without being kicked out, since retries should be unlimited. The internal while loop will only stop because the final input is a valid command ("Test")
+            commandReturned = elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]).Result;
+
+            TestUtils.assertCommandsMatchHelper(CommandType.Test, commandReturned);
+
+            var outputCount = _ui.outputs?.Count;
+            Assert.AreEqual(21, outputCount, $"Expected 21 outputs to the ui; found {outputCount}");
+
+            Assert.IsTrue(_ui.outputs?.All(output => output.Equals(Utils.Phrases_en["Retry"])), $"Expected all ui outputs to contain retry message");
+
+            _ui.Reset();
+        }
+
+        [TestMethod]
+        public void GetCommandAfterRetry_RetryMaxZero_ThrowsException()
+        {
+            init(0); //zero max retries (not valid value)
+
+            _ui.TestInput = "lorem ipsum"; //doesn't matter
+
+            try
             {
-                commandReturned = await elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]);
+                var cmd = elevatorController.GetCommandAfterRetry(string.Empty, string.Empty).Result;
+            }
+            catch (Exception ex)
+            {
+                var isArgumentEx = ex.GetType() == typeof(ArgumentException);
+                isArgumentEx |= ex.InnerException.GetType() == typeof(ArgumentException);
 
-                TestUtils.assertCommandsMatchHelper(CommandType.TryAgain, commandReturned);
+                Assert.IsTrue(isArgumentEx);
+                return;
             }
 
-            Assert.IsTrue(commandCounter == 20, $"With no retry max set, we should have seen 20 retry attempts. Actual value: {commandCounter}");
+            _ui.Reset();
 
-            //finish on a valid input to exit the retry cycle
-            _ui.TestInput = "TEST"; 
+            //if we got this far, the test has failed
+            Assert.Fail("End of test reached; expected an ArgumentException exception");
+        }
 
-            commandReturned = await elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]);
+        [TestMethod]
+        public void GetCommandAfterRetry_WithinRetryLimit_ReturnsValidCommand()
+        {
+            init(3);
+
+            _ui.TestCommand = CommandType.Test; //valid command
+
+            var commandReturned = elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]).Result;
 
             TestUtils.assertCommandsMatchHelper(CommandType.Test, commandReturned);
 
             _ui.Reset();
         }
 
-        public async void GetCommandAfterRetry_RetryMaxZero_Aborts()
+        [TestMethod]
+        public void GetCommandAfterRetry_WithinRetryLimitWithInvalidCommand_ReturnsAbort()
         {
-            init(0); //zero max retries (not valid value)
+            init(3);
 
-            _ui.TestInput = "lorem ipsum"; //doesn't matter
-                                           
-            var commandReturned = await elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]);
+            _ui.TestCommand = CommandType.TryAgain; //invalid command for exiting the while loop
+
+            var commandReturned = elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]).Result;
 
             TestUtils.assertCommandsMatchHelper(CommandType.Abort, commandReturned);
 
             _ui.Reset();
         }
-        //init();
-        //_ui.SetMultipleCommands
-        //    (
-        //        new List<CommandType>
-        //        {
-        //            CommandType.TryAgain,
-        //            CommandType.Exit
-        //        }
-        //    );
 
-        //elevatorMaster.PerformCommand(CommandType.TryAgain);
+        [TestMethod]
+        public void GetCommandAfterRetry_ReachedRetryLimit_ReturnsValidCommand()
+        {
+            init(3);
+            CommandType returnCommand;
 
-        //if ((_ui.outputs?.Count ?? 0) < 3)
-        //{
-        //    Assert.Fail(string.Format(errMsgExpectedOutputs, 3, _ui.outputs?.Count));
-        //}
-        //else
-        //{
-        //    TestUtils.assertOutputsPartialMatchHelper(0, _ui.outputs[0], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+            //set 2 retries to match the max retry count of 3, and then a valid command (since the first time we call the function counts as a "retry")
+            var inputCommands = new List<CommandType>
+                    {
+                        CommandType.TryAgain,
+                        CommandType.TryAgain,
+                        CommandType.Test
+                    };
+            _ui.SetMultipleCommands(inputCommands);
 
-        //    TestUtils.assertOutputsPartialMatchHelper(1, _ui.outputs[1], Utils.Phrases_en["Retry"], CommandType.TryAgain, 80);
+            returnCommand = elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]).Result;
 
-        //    TestUtils.assertOutputsPartialMatchHelper(2, _ui.outputs[2], Utils.Phrases_en["AreYouSure"], CommandType.Exit, 80);
-        //}
+            //check we retried 3 times
+            var outputCount = _ui.outputs?.Count ?? 0;
+            if (outputCount != 3)
+                Assert.Fail($"Expected 4 outputs, received {outputCount}");
 
-        //_ui.Reset();
+            //first three outputs should be retry prompts
+            var nrRetryOutputs = _ui.outputs?.Where(s => s.Contains(Utils.Phrases_en["Retry"]))?.Count();
+            Assert.IsTrue(nrRetryOutputs == 3, $"Expected 3 retry prompt outputs; received {nrRetryOutputs}");
 
-        //}
+            //check the final result was a "TEST"
+            Assert.IsTrue(returnCommand == CommandType.Test, $"Final command expected to be TEST; received '{returnCommand}' instead");
+        }
+
+
+        [TestMethod]
+        public void GetCommandAfterRetry_ReachedRetryLimitWithInvalidCommand_ReturnsAbort()
+        {
+            init(3);
+            CommandType returnCommand;
+
+            //set 2 retries to match the max retry count of 3, and then an valid command that just so happens to also be "retry" (since the first time we call the function counts as a "retry"). The function doesn't take text input, and there is no automatically failing command. Retries trigger the same logic though.
+            var inputCommands = new List<CommandType>
+                    {
+                        CommandType.TryAgain,
+                        CommandType.TryAgain,
+                        CommandType.TryAgain
+                    };
+            _ui.SetMultipleCommands(inputCommands);
+
+            returnCommand = elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]).Result;
+
+            //check we retried 3 times
+            var outputCount = _ui.outputs?.Count ?? 0;
+            if (outputCount != 3)
+                Assert.Fail($"Expected 4 outputs, received {outputCount}");
+
+            //first three outputs should be retry prompts
+            var nrRetryOutputs = _ui.outputs?.Where(s => s.Contains(Utils.Phrases_en["Retry"]))?.Count();
+            Assert.IsTrue(nrRetryOutputs == 3, $"Expected 3 retry prompt outputs; received {nrRetryOutputs}");
+
+            //check the final result was ABORT
+            Assert.IsTrue(returnCommand == CommandType.Abort, $"Final command expected to be ABORT; received '{returnCommand}' instead");
+        }
+
+
+        [TestMethod]
+        public void GetCommandAfterRetry_ExceedRetryLimit_ReturnsAbort()
+        {
+            init(3);
+            CommandType returnCommand;
+
+            //set 3 retries to exceed the max retry count of 3 (since the first time we call the function counts as a "retry"), then a valid command we should never hit
+            var inputCommands = new List<CommandType>
+                    {
+                        CommandType.TryAgain,
+                        CommandType.TryAgain,
+                        CommandType.TryAgain,
+                        CommandType.Test
+                    };
+            _ui.SetMultipleCommands(inputCommands);
+
+            returnCommand = elevatorController.GetCommandAfterRetry(Utils.Phrases_en["Retry"], Utils.Phrases_en["RetryCountdown"]).Result;
+
+            //check we retried 3 times
+            var outputCount = _ui.outputs?.Count ?? 0;
+            if (outputCount != 3)
+                Assert.Fail($"Expected 4 outputs, received {outputCount}");
+
+            //all outputs should be retry prompts
+            Assert.IsTrue(_ui.outputs?.All(s => s.Contains(Utils.Phrases_en["Retry"])), $"Expected all outputs to be retry prompts");
+
+            //check the final result was an abort, not a test
+            Assert.IsTrue(returnCommand == CommandType.Abort, $"Final command expected to be ABORT; received '{returnCommand}' instead");
+        }
 
         #endregion RETRY TESTS
 
@@ -171,18 +276,19 @@ namespace ElevatorTests
 
         #endregion SHUTDOWN TESTS
 
-        //Template
+        /*
+        Template
         #region  TESTS
 
-        //[TestMethod]
-        //public void myTest()
-        //{
-        //    init();
+        [TestMethod]
+        public void myTest()
+        {
+            init();
 
 
-        //}
-
+        }
+        
         #endregion TESTS
-
+        */
     }
 }

@@ -16,19 +16,40 @@ namespace ElevatorAction
 
         public ElevatorMaster(IUserInterface ui, IConfiguration config, ILogger logger, Dictionary<string, string> phrases)
         {
+            _ui = ui;
+            _config = config;
+            _logger = logger;
+
+            //Get all phrases from the utils for now, this could come from translation files later
+            _phrases = phrases;
+
+            //override the retry count with the config value, if present, else leave at the default
+            int.TryParse(Utils.GetConfigSetting(_config, "retryCount"), out _retryCount);
+
+            controller = new ElevatorController(_ui, _logger, _retryCount);
+        }
+
+        internal async Task Execute()
+        {
             try
             {
-                _ui = ui;
-                _config = config;
-                _logger = logger;
+                _ui.Display(_phrases["Welcome"]);
+                _logger.Log(LogLevel.Information, $"Elevator Action program started [{DateTime.Now.ToString("yyyyMMdd HH:mm:ss")}]");
 
-                //Get all phrases from the utils for now, this could come from translation files later
-                _phrases = phrases;
+                //get first command
+                var input = await _ui.GetCommandAsync();
 
-                //override the retry count with the config value, if present, else leave at the default
-                int.TryParse(Utils.GetConfigSetting(_config, "retryCount"), out _retryCount);
+                //for as long as the user is entering commands (that aren't to exit), process them
+                while (input != CommandType.Exit)
+                {
+                    await PerformCommand(input);
 
-                controller = new ElevatorController(_ui, _retryCount);
+                    //once the command has been performed, wait for the next command
+                    input = await _ui.GetCommandAsync();
+                }
+
+                //once no more commands are received, exit (no need to await this operation)
+                controller.PerformShutdownWithFinalMessage(_phrases["GOODBYE"]);
             }
             catch (Exception ex)
             {
@@ -43,27 +64,6 @@ namespace ElevatorAction
             }
         }
 
-        internal async Task Execute()
-        {
-            _ui.Display(_phrases["Welcome"]);
-            _logger.Log(LogLevel.Information, $"Elevator Action program started [{DateTime.Now.ToString("yyyyMMdd HH:mm:ss")}]");
-
-            //get first command
-            var input = await _ui.GetCommandAsync();
-
-            //for as long as the user is entering commands (that aren't to exit), process them
-            while (input != CommandType.Exit)
-            {
-                await PerformCommand(input);
-
-                //once the command has been performed, wait for the next command
-                input = await _ui.GetCommandAsync();
-            }
-
-            //once no more commands are received, exit (no need to await this operation)
-            controller.PerformShutdownWithFinalMessage(_phrases["GOODBYE"]);
-        }
-
         public async Task PerformCommand(CommandType command)
         {
             switch (command)
@@ -71,7 +71,7 @@ namespace ElevatorAction
                 case CommandType.Test:
                     //Test command used in unit tests to verify correct switching
                     _ui.Display("Tested");
-                    break; 
+                    break;
                 case CommandType.TryAgain:
                     await PerformCommand(
                         await controller.GetCommandAfterRetry(_phrases["Retry"], _phrases["RetryCountdown"])
