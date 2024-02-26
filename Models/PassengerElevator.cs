@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ElevatorAction.Models
 {
-    public class PassengerElevator : Elevator<int>
+    public class PassengerElevator : Elevator<int>, IElevator<int>
     {
         #region PRIVATE/PROTECTED PROPERTIES
 

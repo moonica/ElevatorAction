@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using ElevatorAction.Repository.SQL;
 using System.Diagnostics.Tracing;
+using System.Numerics;
 
 namespace ElevatorAction.Repository
 {
-    public class ElevatorDBContext<TCapacityUnit> : IElevatorDBContext<TCapacityUnit>
+    public class ElevatorDBContext<TCapacityUnit> : IElevatorDBContext<TCapacityUnit> where TCapacityUnit : INumber<TCapacityUnit>
     {
         #region INITIALIZE DB
 
@@ -36,7 +37,7 @@ namespace ElevatorAction.Repository
 
         #region PRIVATE METHODS        
 
-        private Dictionary<string, object> createParameterList(Elevator<TCapacityUnit> elevator)
+        private Dictionary<string, object> createParameterList(IElevator<TCapacityUnit> elevator)
         {
             return new Dictionary<string, object>();
         }
@@ -45,7 +46,7 @@ namespace ElevatorAction.Repository
 
 
         #region OPERATIONS
-        public Response<int?> CreateElevator(Elevator<TCapacityUnit> elevator)
+        public Response<int?> CreateElevator(IElevator<TCapacityUnit> elevator)
         {
             if (elevator == null)
                 return new Response<int?>(false, "Elevator object to create not provided");
@@ -86,7 +87,7 @@ namespace ElevatorAction.Repository
             }
         }
 
-        public Response UpdateElevator(Elevator<TCapacityUnit> elevator)
+        public Response UpdateElevator(IElevator<TCapacityUnit> elevator)
         {
             if (elevator == null)
                 return new Response(false, "Elevator object to update not provided");
@@ -108,29 +109,41 @@ namespace ElevatorAction.Repository
             }
         }
 
-        public Response<List<TElevatorImplementation>> GetAllElevators<TElevatorImplementation>() where TElevatorImplementation : Elevator<TCapacityUnit>, new()
+        public Response<List<IElevator<TCapacityUnit>>> GetAllElevators<TElevator>() where TElevator : IElevator<TCapacityUnit>, new()
         {
             using (_context)
             {
-                var getAllResponse = _context.GetSqlResultListFromSP<TElevatorImplementation>(spGetElevators);
+                var getAllResponse = _context.GetSqlResultListFromSP<TElevator>(spGetElevators);
 
                 if (!getAllResponse.Success)
-                    return new Response<List<TElevatorImplementation>>() { Success = false, Message = $"Could not retrieve elevators; an unexpected error was encountered ('{getAllResponse.Message}')" };
+                    return new Response<List<IElevator<TCapacityUnit>>>() { Success = false, Message = $"Could not retrieve elevators; an unexpected error was encountered ('{getAllResponse.Message}')" };
 
-                return getAllResponse;
+                var result = getAllResponse.Data.Select<TElevator, IElevator<TCapacityUnit>>(x => (IElevator<TCapacityUnit>)x);
+
+                return new Response<List<IElevator<TCapacityUnit>>>()
+                {
+                    Success = getAllResponse.Success,
+                    Message = getAllResponse.Message,
+                    Data = result.ToList()
+                };
             }
         }
 
-        public Response<TElevatorImplementation> GetElevator<TElevatorImplementation>(int elevatorId) where TElevatorImplementation : Elevator<TCapacityUnit>, new()
+        public Response<IElevator<TCapacityUnit>> GetElevator<TImplementation>(int elevatorId) where TImplementation : IElevator<TCapacityUnit>, new()
         {
             using (_context)
             {
-                var getElevatorResponse = _context.GetSqlResultFromSP<TElevatorImplementation>(spGetElevators, new Dictionary<string, object>() { { "ElevatorID", elevatorId } });
+                var getElevatorResponse = _context.GetSqlResultFromSP<TImplementation>(spGetElevators, new Dictionary<string, object>() { { "ElevatorID", elevatorId } });
 
                 if (!getElevatorResponse.Success)
-                    return new Response<TElevatorImplementation>() { Success = false, Message = $"Could not retrieve elevator with id {elevatorId}; an unexpected error was encountered ('{getElevatorResponse.Message}')" };
+                    return new Response<IElevator<TCapacityUnit>>() { Success = false, Message = $"Could not retrieve elevator with id {elevatorId}; an unexpected error was encountered ('{getElevatorResponse.Message}')" };
 
-                return getElevatorResponse;
+                return new Response<IElevator<TCapacityUnit>>()
+                {
+                    Success = getElevatorResponse.Success,
+                    Message = getElevatorResponse.Message,
+                    Data = getElevatorResponse.Data
+                };
             }
         }
 

@@ -1,10 +1,11 @@
 ﻿using ElevatorAction.Models;
 using ElevatorAction.Repository;
 using Microsoft.Extensions.Logging;
+using System.Numerics;
 
 namespace ElevatorAction.Repository
 {
-    public class ElevatorRepository<TCapacityUnit> : IElevatorRepository<TCapacityUnit>
+    public class ElevatorRepository<TCapacityUnit> : IElevatorRepository<TCapacityUnit> where TCapacityUnit : INumber<TCapacityUnit>
     {
         #region PRIVATE PROPERTIES
 
@@ -32,7 +33,7 @@ namespace ElevatorAction.Repository
         /// </summary>
         /// <param name="elevator"></param>
         /// <returns></returns>
-        public Response ValidateElevator(Elevator<TCapacityUnit> elevator)
+        public Response ValidateElevator(IElevator<TCapacityUnit> elevator)
         {
             return new Response(true);
         }
@@ -42,7 +43,7 @@ namespace ElevatorAction.Repository
         /// </summary>
         /// <param name="elevator"></param>
         /// <returns>Returns the created object's db ID (primary key), if created successfully</returns>
-        public Response<int?> CreateElevator(Elevator<TCapacityUnit> elevator)
+        public Response<int?> CreateElevator(IElevator<TCapacityUnit> elevator)
         {
             if (!ValidateElevator(elevator).Success)
             {
@@ -68,9 +69,9 @@ namespace ElevatorAction.Repository
         /// Get a list of all elevators in the database
         /// </summary>
         /// <returns></returns>
-        public Response<List<TElevatorImplementation>> GetAllElevators<TElevatorImplementation>() where TElevatorImplementation : Elevator<TCapacityUnit>, new ()
+        public Response<List<IElevator<TCapacityUnit>>> GetAllElevators<TImplementation>() where TImplementation : IElevator<TCapacityUnit>, new()
         {
-            return _context.GetAllElevators<TElevatorImplementation>();
+            return _context.GetAllElevators<TImplementation>();
         }
 
         /// <summary>
@@ -78,12 +79,12 @@ namespace ElevatorAction.Repository
         /// </summary>
         /// <param name="elevatorId"></param>
         /// <returns></returns>
-        public Response<TElevatorImplementation> GetElevator<TElevatorImplementation>(int elevatorId) where TElevatorImplementation : Elevator<TCapacityUnit>, new()
+        public Response<IElevator<TCapacityUnit>> GetElevator<TImplementation>(int elevatorId) where TImplementation : IElevator<TCapacityUnit>, new()
         {
-            return _context.GetElevator<TElevatorImplementation>(elevatorId);
+            return _context.GetElevator<TImplementation>(elevatorId);
         }
 
-        public Response UpdateElevator(Elevator<TCapacityUnit> elevator)
+        public Response UpdateElevator(IElevator<TCapacityUnit> elevator)
         {
             if (!ValidateElevator(elevator).Success)
             {
